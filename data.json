@@ -1,0 +1,46 @@
+[
+  {
+    "input": "Nice to see you.",
+    "output": "만나서 반갑습니다."
+  },
+  {
+    "input": "What is this?",
+    "output": "이게 뭡니까?"
+  },
+  {
+    "input": "Hello!",
+    "output": "안녕하세요!"
+  },
+  {
+    "input": "hi",
+    "output": "안녕"
+  },
+  {
+    "input": "How was your day?",
+    "output": "당신의 오늘은 어떠셨나요?"
+  },
+  {
+    "input": "Currently in seoul.",
+    "output": "현재 서울에 있음."
+  },
+  {
+    "input": "I'm in new york.",
+    "output": "나는 뉴욕에 있어요."
+  },
+  {
+    "input": "Go home.",
+    "output": "집으로 꺼져."
+  },
+  {
+    "input": "It's good for me.",
+    "output": "저는 좋습니다."
+  },
+  {
+    "input": "zz",
+    "output": "ㅋㅋ"
+  },
+  {
+    "input": "How can I get there?",
+    "output": "그곳에는 어떻게 가죠?"
+  }
+]
