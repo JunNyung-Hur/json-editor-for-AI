@@ -107,7 +107,7 @@ class GUIManager:
         main_label.pack()
 
     def load_item(self, item_id: int):
-        if self.current_item_id:
+        if self.current_item_id is not None:
             self.apply_item()
 
         item = self.data_manager.get_item(item_id)
@@ -172,11 +172,14 @@ class GUIManager:
         self.load_item(new_item_id)
 
     def save(self):
+        if self.current_item_id is not None:
+            self.apply_item()
+
         self.data_manager.save_data()
         self.list_items()
 
     def on_closing(self):
-        if self.current_item_id:
+        if self.current_item_id is not None:
             self.apply_item()
 
         if not self.data_manager.saved:
