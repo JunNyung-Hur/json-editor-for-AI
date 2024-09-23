@@ -11,6 +11,7 @@ class GUIManager:
         self.root = tk.Tk()
         self.root.title("JSON Editor")
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+        self.root.geometry("1366x768")  # 창 크기 설정
 
         self.ui_table = {"item_btn_list": [], "edit_page": {}}
 
@@ -59,22 +60,64 @@ class GUIManager:
     def build_left_frame(self, rebuild=False):
         if rebuild:
             self.ui_table["left_frame"].destroy()
+
+        # left_frame 생성
         self.ui_table["left_frame"] = tk.Frame(self.root)
-        self.ui_table["left_frame"].pack(side=tk.LEFT, fill=tk.Y, padx=(0, 20))
+        self.ui_table["left_frame"].pack(side=tk.LEFT, fill=tk.Y)  # fill=tk.Y로 수정하여 세로로 공간 채움
+
+        # Scrollbar 생성
+        scrollbar = tk.Scrollbar(self.ui_table["left_frame"], orient="vertical")
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        # Canvas 생성
+        canvas = tk.Canvas(self.ui_table["left_frame"], bd=0, highlightthickness=0, yscrollcommand=scrollbar.set)
+        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # Scrollbar와 Canvas 연결
+        scrollbar.config(command=canvas.yview)
+
+        # 마우스 휠 이벤트 바인딩
+        canvas.bind("<Enter>", lambda e: canvas.bind_all("<MouseWheel>", self._on_mousewheel))
+        canvas.bind("<Leave>", lambda e: canvas.unbind_all("<MouseWheel>"))
+
+        # 버튼들을 담을 Frame 생성
+        button_frame = tk.Frame(canvas)
+        canvas.create_window((0, 0), window=button_frame, anchor='nw')
+
+        # 최대 너비 설정
+        max_left_frame_width = 300  # 원하는 최대 너비 설정
+
+        # 스크롤 영역 업데이트 및 너비 조절
+        def on_configure(event):
+            req_width = button_frame.winfo_reqwidth()
+            if req_width > max_left_frame_width:
+                req_width = max_left_frame_width
+            canvas.configure(scrollregion=canvas.bbox("all"), width=req_width)
+
+        button_frame.bind("<Configure>", on_configure)
+
+        # 참조 저장
+        self.ui_table["left_canvas"] = canvas
+        self.ui_table["button_frame"] = button_frame
+
+    def _on_mousewheel(self, event):
+        self.ui_table["left_canvas"].yview_scroll(int(-1*(event.delta/120)), "units")
 
     def build_main_frame(self, rebuild=False):
         if rebuild:
             self.ui_table["main_frame"].destroy()
-        self.ui_table["main_frame"] = tk.Frame(self.root, width=1024, height=512)
-        self.ui_table["main_frame"].pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
-        self.ui_table["main_frame"].pack_propagate(False)
+        self.ui_table["main_frame"] = tk.Frame(self.root)
+        self.ui_table["main_frame"].pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
     def list_items(self):
         for item_btn in self.ui_table["item_btn_list"]:
             item_btn.destroy()
         self.ui_table["item_btn_list"].clear()
 
+        max_left_frame_width = 300  # 버튼 텍스트의 최대 너비 설정
+
         for idx, (item_id, status) in enumerate(self.data_manager.get_item_id_list(include_status=True)):
+            # 상태에 따른 아이콘 설정
             if status == "normal":
                 status_emoji = '✅'
             elif status == "deleted":
@@ -83,12 +126,14 @@ class GUIManager:
                 status_emoji = '🆕'
             else:
                 status_emoji = '⚠️'
+
             item_text = f"{'⚫' if item_id == self.current_item_id else '︎'}Item {idx + 1} {status_emoji}"
+
             btn = tk.Button(
-                self.ui_table["left_frame"],
+                self.ui_table["button_frame"],
                 text=item_text,
                 font=("Arial", self.font_size),
-                padx=10, pady=5,
+                wraplength=max_left_frame_width,  # 텍스트 너비 제한
                 command=lambda x=item_id: self.load_item(x)
             )
             btn.pack(fill=tk.X)
@@ -118,7 +163,7 @@ class GUIManager:
         input_label = tk.Label(self.ui_table["main_frame"], text="Input", font=("Arial", self.font_size))
         input_label.pack()
         self.ui_table["edit_page"]["input_text"] = tk.Text(
-            self.ui_table["main_frame"], font=("Arial", self.data_font_size), height=10
+            self.ui_table["main_frame"], font=("Arial", self.data_font_size), height=16
         )
         self.ui_table["edit_page"]["input_text"].pack(fill=tk.X, expand=True)
         self.ui_table["edit_page"]["input_text"].insert(tk.END, item['input'])
@@ -126,7 +171,7 @@ class GUIManager:
         output_label = tk.Label(self.ui_table["main_frame"], text="Output", font=("Arial", self.font_size))
         output_label.pack()
         self.ui_table["edit_page"]["output_text"] = tk.Text(
-            self.ui_table["main_frame"], font=("Arial", self.data_font_size), height=10
+            self.ui_table["main_frame"], font=("Arial", self.data_font_size), height=16
         )
         self.ui_table["edit_page"]["output_text"].pack(fill=tk.X, expand=True)
         self.ui_table["edit_page"]["output_text"].insert(tk.END, item['output'])
